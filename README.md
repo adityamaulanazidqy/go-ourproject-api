@@ -1,79 +1,159 @@
 # Go OurProject API
 
-🚧 **Proyek ini masih dalam tahap pengembangan aktif. Fitur dan struktur dapat berubah sewaktu-waktu.** 🚧
+[![Go](https://img.shields.io/badge/Go-1.21+-00ADD8?logo=go)](https://golang.org/)
+[![Fiber](https://img.shields.io/badge/Fiber-2.50.0-00ADD8)](https://gofiber.io/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/adityamaulanazidqy/go-ourproject-api/pulls)
 
-Go OurProject API adalah RESTful API yang dibangun menggunakan [Fiber](https://gofiber.io/) (framework web untuk Golang), dengan arsitektur modular, dukungan untuk Redis, dan fitur pengiriman OTP melalui email. Proyek ini bertujuan untuk menjadi backend yang efisien dan terstruktur untuk kebutuhan aplikasi modern.
+🚧 **Project Status: Active Development** 🚧  
+*Features and structure may change during development*
 
-## Fitur
+Go OurProject API is a high-performance RESTful API built with Fiber framework for Golang. A modern backend solution with modular architecture supporting secure authentication, Redis caching, and email integration.
 
-- Struktur proyek terorganisir dengan arsitektur MVC.
-- Otentikasi dan pengiriman OTP melalui email.
-- Middleware untuk logging dan Redis client.
-- Koneksi ke database menggunakan konfigurasi modular.
-- Penanganan rute yang bersih dan terstruktur.
+## Table of Contents
+- [Features](#-features)
+- [Technologies](#-technologies)
+- [Project Structure](#-project-structure)
+- [Installation](#-installation)
+- [API Endpoints](#-api-endpoints)
+- [Testing](#-testing)
+- [Development Roadmap](#-roadmap)
+- [Contributing](#-contributing)
+- [License](#-license)
 
-## Teknologi yang Digunakan
+## ✨ Features
 
-- Go (Golang)
-- [Fiber](https://gofiber.io/)
-- Redis
-- PostgreSQL (diasumsikan dari `ConnDB`)
-- Logrus untuk logging
-- JWT (kemungkinan digunakan dalam otentikasi, berdasarkan struktur umum)
+### Core Architecture
+- Clean MVC pattern implementation
+- Modular design with separation of concerns
+- Centralized error handling
+- Environment-based configuration
 
-## Struktur Proyek
+### Security
+- JWT authentication
+- Email OTP verification
+- Protected routes with middleware
+- Secure password hashing
 
-```
+### Performance
+- Redis caching layer
+- Optimized database queries
+- Efficient routing with Fiber
+- Structured logging with Logrus
+
+## 🛠 Technologies
+
+| Component       | Technology                  |
+|----------------|----------------------------|
+| Language       | Go 1.21+                   |
+| Framework      | Fiber v2                   |
+| Database       | PostgreSQL                 |
+| Cache          | Redis                      |
+| Logging        | Logrus                     |
+| Email          | (Configure your provider)  |
+| Testing        | Go test                    |
+
+## 📂 Project Structure
+
+```bash
 .
-├── config/                 # Konfigurasi aplikasi (DB, Redis, Logger)
-├── controllers/           # Logika controller seperti OTP Email
-├── helpers/               # Fungsi bantu
-├── middlewares/          # Middleware untuk otentikasi, logging, dll
-├── models/                # Model database
-├── repositories/          # Akses ke data layer
-├── routes/                # Daftar rute dan endpoint
-├── test/                  # File testing
-├── main.go                # Entry point aplikasi
-├── go.mod                 # File dependensi Go
-└── .env                   # Variabel lingkungan
+├── config/               # Application configurations
+│   ├── database.go       # DB connection setup
+│   ├── redis.go          # Redis client
+│   └── logger.go         # Logging configuration
+├── controllers/          # Business logic
+│   ├── auth.go           # Authentication handlers
+│   └── user.go           # User management
+├── helpers/              # Utility functions
+│   ├── otp.go            # OTP generation
+│   └── response.go       # API response formatting
+├── middlewares/          # Fiber middlewares
+│   ├── auth.go           # Authentication
+│   ├── logger.go         # Request logging
+│   └── recovery.go       # Error recovery
+├── models/               # Data structures
+│   └── user.go           # User model
+├── repositories/         # Database operations
+│   └── user_repo.go      # User repository
+├── routes/               # API endpoints
+│   ├── api.go            # Route definitions
+│   └── middleware.go     # Route middlewares
+├── test/                 # Test cases
+├── go.mod                # Dependency management
+├── main.go               # Application entry point
+└── .env.example          # Environment template
 ```
 
-## Cara Menjalankan
+## 🚀 Installation
 
-1. **Clone repositori:**
-   ```bash
-   git clone https://github.com/adityamaulanazidqy/go-ourproject-api.git
-   cd go-ourproject-api
-   ```
+### Prerequisites
+- Go 1.21+
+- PostgreSQL 13+
+- Redis 6+
+- SMTP credentials (for OTP emails)
 
-2. **Buat file `.env` berdasarkan konfigurasi yang dibutuhkan:**
-   Contoh variabel lingkungan:
-   ```env
-   DB_USER=youruser
-   DB_PASS=yourpass
-   DB_NAME=yourdb
-   REDIS_ADDR=localhost:6379
-   EMAIL_API_KEY=yourkey
-   ```
+### Quick Start
+1. Clone the repository:
+```bash
+git clone https://github.com/adityamaulanazidqy/go-ourproject-api.git
+cd go-ourproject-api
+```
+2. Set up environment variables:
+```bash
+cp .env.example .env
+```
+Edit the ``.env`` file with your configuration:
+```bash
+# Application
+APP_PORT=8673
+APP_ENV=development
+JWT_SECRET=your_secure_jwt_secret
 
-3. **Jalankan aplikasi:**
-   ```bash
-   go run main.go
-   ```
+# Database
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=your_db_user
+DB_PASS=your_db_password
+DB_NAME=your_db_name
+DB_SSL_MODE=disable
 
-   Aplikasi akan berjalan di port `8673`.
+# Redis
+REDIS_ADDR=localhost:6379
+REDIS_PASSWORD=
+REDIS_DB=0
 
-## Rencana Pengembangan
+# Email
+EMAIL_PROVIDER=sendgrid  # or your provider
+EMAIL_API_KEY=your_api_key
+EMAIL_FROM=noreply@yourdomain.com
+```
+3. Install Dependencies
+```bash
+go mod tidy
+```
+4. go run main.go
+```bash
+go run main.go
+```
+The server will be available at ``http://localhost:8673``
 
-- [ ] Tambah unit test & integrasi test.
-- [ ] Dokumentasi API (Swagger/OpenAPI).
-- [ ] CI/CD pipeline (GitHub Actions).
-- [ ] Manajemen user dan otorisasi lanjutan.
+## 📌 API Endpoints
 
-## Kontribusi
+### Authentication
+| Method    | Endpoint               | Description |
+|-----------|------------------------|-------------|
+| POST      | /auth/register         | registration |
+| POST      | /auth/register         | User login  |
+| POST      | /logout                | User logout |
+| POST      | /otp/send-otp          | Send OTP to email |
+| POST      | /otp/verify-otp        | Verify OTP code |
 
-Pull request sangat diterima! Untuk perubahan besar, harap buka isu terlebih dahulu untuk mendiskusikan apa yang ingin Anda ubah.
+### User Management
+| Method    | Endpoint               | Description |
+|-----------|------------------------|-------------|
+| POST      | /update_password       | User update pass |  
 
-## Lisensi
+_Note: Protected endpoints require JWT in Authorization header_  
 
-Proyek ini menggunakan lisensi MIT. Silakan lihat `LICENSE` untuk informasi lebih lanjut.
+## 💻 Happy Coding!
+For support, please open an issue or contact maintainers.
