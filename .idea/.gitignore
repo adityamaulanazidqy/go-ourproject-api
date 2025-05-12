@@ -9,3 +9,10 @@
 
 # Ignore environment configuration file
 .env
+
+/assets/images/
+*.jpg
+*.png
+*.jpeg
+*.gif
+*.svg
