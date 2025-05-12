@@ -1,1 +1,38 @@
 package identity
+
+import (
+	"go-ourproject/models/identities/statuses"
+	"gorm.io/gorm"
+	"time"
+)
+
+type Masterpiece struct {
+	Id         int `json:"-" gorm:"primary_key"`
+	UserID     int `json:"-" gorm:"column:user_id"`
+	StatusID   int `json:"-" gorm:"column:status_id"`
+	ClassID    int `json:"-" gorm:"column:class_id"`
+	SemesterID int `json:"-" gorm:"column:semester_id"`
+
+	// relations
+	User     Users                      `json:"user,omitempty" gorm:"foreignKey:UserID"`
+	Status   statuses.MasterpieceStatus `json:"status,omitempty" gorm:"foreignKey:StatusID"`
+	Class    Classes                    `json:"class,omitempty" gorm:"foreignKey:ClassID"`
+	Semester Semesters                  `json:"semester,omitempty" gorm:"foreignKey:SemesterID"`
+
+	PublicationDate time.Time `json:"publication_date" gorm:"column:publication_date"`
+	LinkGithub      string    `json:"link_github" gorm:"column:link_github"`
+	ViewerCount     int       `json:"viewer_count" gorm:"column:viewer_count"`
+	CreatedAt       time.Time `json:"-" gorm:"column:created_at"`
+	UpdatedAt       time.Time `json:"-" gorm:"column:updated_at"`
+}
+
+func (masterpiece *Masterpiece) BeforeCreate(tx *gorm.DB) (err error) {
+	masterpiece.CreatedAt = time.Now()
+	masterpiece.UpdatedAt = time.Now()
+	return
+}
+
+func (masterpiece *Masterpiece) BeforeUpdate(tx *gorm.DB) (err error) {
+	masterpiece.UpdatedAt = time.Now()
+	return
+}
