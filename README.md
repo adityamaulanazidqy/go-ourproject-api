@@ -84,7 +84,7 @@ Go OurProject API is a high-performance RESTful API built with Fiber framework f
 
 ### Prerequisites
 - Go 1.21+
-- PostgreSQL 13+
+- MySQL 8.0+
 - Redis 6+
 - SMTP credentials (for OTP emails)
 
