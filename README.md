@@ -16,10 +16,6 @@ Go OurProject API is a high-performance RESTful API built with Fiber framework f
 - [Project Structure](#-project-structure)
 - [Installation](#-installation)
 - [API Endpoints](#-api-endpoints)
-- [Testing](#-testing)
-- [Development Roadmap](#-roadmap)
-- [Contributing](#-contributing)
-- [License](#-license)
 
 ## ✨ Features
 
