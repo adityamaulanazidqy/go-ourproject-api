@@ -8,9 +8,11 @@
 /dataSources.local.xml
 
 # Ignore environment configuration file
-.env
+../.env
 
-/assets/images/
+/assets/images/masterpiece
+/assets/images/profile
+
 *.jpg
 *.png
 *.jpeg
