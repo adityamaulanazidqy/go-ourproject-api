@@ -3,6 +3,7 @@ package status_repository
 import (
 	"context"
 	"encoding/json"
+	"github.com/gofiber/fiber/v2"
 	"github.com/redis/go-redis/v9"
 	"github.com/sirupsen/logrus"
 	"go-ourproject/helpers"
@@ -42,7 +43,9 @@ func (r *StatusRepository) StatusMasterpieceRepository() (helpers.ApiResponse, i
 		return helpers.ApiResponse{Message: "Failed to convert json unmarshal masterpiece"}, http.StatusInternalServerError, err
 	}
 
-	return helpers.ApiResponse{Message: "Success Getting masterpiece status in redis", Data: masterpieceStatus}, http.StatusOK, nil
+	return helpers.ApiResponse{Message: "Success Getting masterpiece status in redis", Data: fiber.Map{
+		"masterpiece_status": masterpieceStatus,
+	}}, http.StatusOK, nil
 }
 
 func (r *StatusRepository) statusMasterpieceDBMysql() (helpers.ApiResponse, int, error) {
@@ -61,5 +64,7 @@ func (r *StatusRepository) statusMasterpieceDBMysql() (helpers.ApiResponse, int,
 
 	r.rdb.Set(ctx, "masterpiece_status", masterpieceStatusJson, 24*time.Hour)
 
-	return helpers.ApiResponse{Message: "Successfully get masterpiece Status in database", Data: masterpieceStatus}, http.StatusOK, nil
+	return helpers.ApiResponse{Message: "Successfully get masterpiece Status in database", Data: fiber.Map{
+		"masterpiece_status": masterpieceStatus,
+	}}, http.StatusOK, nil
 }

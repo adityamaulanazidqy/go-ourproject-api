@@ -6,7 +6,6 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/sirupsen/logrus"
 	identity "go-ourproject/models/identities"
-	"go-ourproject/models/identities/files"
 	"go-ourproject/models/identities/statuses"
 	"go-ourproject/models/response_models"
 	"gorm.io/gorm"
@@ -96,7 +95,7 @@ func (r *MasterpieceRepository) CreateMasterpieceWithFiles(masterpiece *identity
 	var filenameResponse []response_models.FileMasterpieceResponse
 
 	for _, fileName := range fileNames {
-		file := files.FileMasterpiece{
+		file := identity.FileMasterpiece{
 			MasterpieceID: masterpieceEntity.Id,
 			FilePath:      fileName,
 		}
@@ -135,17 +134,22 @@ func (r *MasterpieceRepository) CreateMasterpieceWithFiles(masterpiece *identity
 		Photo:     masterpieceEntity.User.Photo,
 		CreatedAt: masterpieceEntity.User.CreatedAt,
 		UpdatedAt: masterpieceEntity.User.UpdatedAt,
-		Role:      masterpieceEntity.User.Role,
-		Major:     masterpieceEntity.User.Major,
+		RoleName:  masterpieceEntity.User.Role.Name,
+		MajorName: masterpieceEntity.User.Major.Name,
+	}
+
+	var files []string
+	for _, file := range filenameResponse {
+		files = append(files, file.Name)
 	}
 
 	return response_models.MasterpieceResponse{
 		User:            userResponse,
-		Status:          masterpieceEntity.Status,
-		Class:           masterpieceEntity.Class,
-		Semester:        masterpieceEntity.Semester,
+		StatusName:      masterpieceEntity.Status.Name,
+		ClassName:       masterpieceEntity.Class.Class,
+		SemesterName:    masterpieceEntity.Semester.Name,
 		LinkGithub:      masterpiece.LinkGithub,
-		Files:           filenameResponse,
-		PublicationDate: masterpiece.PublicationDate,
+		Files:           files,
+		PublicationDate: masterpiece.PublicationDate.Format("2006-01-02"),
 	}, fiber.StatusCreated, op, "", nil
 }

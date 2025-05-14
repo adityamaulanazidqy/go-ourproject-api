@@ -19,11 +19,24 @@ type Masterpiece struct {
 	Class    Classes                    `json:"class,omitempty" gorm:"foreignKey:ClassID"`
 	Semester Semesters                  `json:"semester,omitempty" gorm:"foreignKey:SemesterID"`
 
+	Files []FileMasterpiece `gorm:"foreignKey:MasterpieceID"`
+
 	PublicationDate time.Time `json:"publication_date" gorm:"column:publication_date"`
 	LinkGithub      string    `json:"link_github" gorm:"column:link_github"`
 	ViewerCount     int       `json:"viewer_count" gorm:"column:viewer_count"`
 	CreatedAt       time.Time `json:"-" gorm:"column:created_at"`
 	UpdatedAt       time.Time `json:"-" gorm:"column:updated_at"`
+}
+
+type FileMasterpiece struct {
+	Id            int         `json:"-" gorm:"primary_key"`
+	MasterpieceID int         `json:"-" gorm:"column:masterpiece_id"`
+	FilePath      string      `json:"file_path" gorm:"column:file_path"`
+	Masterpiece   Masterpiece `json:"masterpiece,omitempty" gorm:"foreignKey:MasterpieceID"`
+}
+
+func (FileMasterpiece) TableName() string {
+	return "files_masterpiece"
 }
 
 func (masterpiece *Masterpiece) BeforeCreate(tx *gorm.DB) (err error) {

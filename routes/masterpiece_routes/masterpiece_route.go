@@ -15,7 +15,9 @@ func MasterpieceRoute(app *fiber.App, db *gorm.DB, logLogrus *logrus.Logger, rdb
 
 	masterpieceGroup := app.Group("/masterpiece")
 
-	masterpieceGroup.Post("/post-masterpiece", middlewares.JWTMiddleware("Siswa", "Guru", "Pembimbing"), controller.PostMasterpiece)
+	masterpieceGroup.Post("", middlewares.JWTMiddleware("Siswa", "Guru", "Pembimbing"), controller.PostMasterpiece)
+
+	masterpieceGroup.Get("", middlewares.JWTMiddleware("Siswa", "Guru", "Pembimbing"), controller.GetMasterpieces)
 
 	masterpieceGroup.All("/*", func(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusMethodNotAllowed).JSON(helpers.ApiResponse{

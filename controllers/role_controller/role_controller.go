@@ -109,6 +109,11 @@ func (c *RoleController) CreateRole(ctx *fiber.Ctx) error {
 		return c.handleError(ctx, fiber.StatusBadRequest, op, err, "Failed to parse body")
 	}
 
+	if role.Name == "" {
+		c.logError(claims.Email, err, "Failed to parse body roles. role name is required")
+		return c.handleError(ctx, fiber.StatusBadRequest, op, err, "Failed to parse body roles. role name is required")
+	}
+
 	responseRepo, code, err := c.roleRepo.CreateRoleRepository(&role)
 	if err != nil {
 		c.logError(claims.Email, err, "Failed to add roles")
