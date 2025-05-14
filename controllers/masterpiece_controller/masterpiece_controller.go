@@ -132,6 +132,32 @@ func (c *MasterpieceController) PostMasterpiece(ctx *fiber.Ctx) error {
 	})
 }
 
+func (c *MasterpieceController) GetMasterpieces(ctx *fiber.Ctx) error {
+	const op = "controller.Masterpieces.masterpieceController.GetMasterpieces"
+
+	claims, ok := ctx.Locals("user").(*jwt_models.JWTClaims)
+	if !ok || claims == nil {
+		err := errors.New("missing claims")
+		c.logLogrus.WithFields(logrus.Fields{
+			"err":     err,
+			"message": "missing claims",
+		}).Error("Failed to get claims")
+
+		return c.handleError(ctx, fiber.StatusInternalServerError, op, err, "Failed to get claims")
+	}
+
+	responseRepo, code, opResp, msg, err := c.masterRepo.GetMasterpiecesRepository()
+	if err != nil {
+		c.logError(claims.Email, err, msg)
+		return c.handleError(ctx, code, opResp, err, msg)
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": msg,
+		"data":    responseRepo,
+	})
+}
+
 func (c *MasterpieceController) logError(email string, err error, message string) {
 	fields := logrus.Fields{"email": email, "message": message}
 	if err != nil {
