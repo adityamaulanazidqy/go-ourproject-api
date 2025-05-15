@@ -82,10 +82,10 @@ func (c *AuthController) Login(ctx *fiber.Ctx) error {
 	return ctx.Status(fiber.StatusOK).JSON(helpers.ApiResponseAuthorization{
 		Message: "Login Success",
 		Data: auth_models.LoginResponse{
-			Username: user.Username,
-			Email:    user.Email,
-			Role:     user.Role,
-			Major:    user.Major,
+			Username:  user.Username,
+			Email:     user.Email,
+			RoleName:  user.Role.Name,
+			MajorName: user.Major.Name,
 		},
 		Token: token,
 	})
@@ -135,11 +135,12 @@ func (c *AuthController) Register(ctx *fiber.Ctx) error {
 	}
 
 	var existingUser identity.Users
-	if err := c.db.Where("username = ?", username).First(&existingUser).Error; err == nil {
+	if err := c.db.Where("username = ?", username).First(&existingUser).Error; !errors.Is(err, gorm.ErrRecordNotFound) {
 		c.logError(email, err, msgUsernameAlreadyExists)
 		return c.handleError(ctx, fiber.StatusConflict, op, err, msgUsernameAlreadyExists)
 	}
-	if err := c.db.Where("email = ?", email).First(&existingUser).Error; err == nil {
+
+	if err := c.db.Where("email = ?", email).First(&existingUser).Error; !errors.Is(err, gorm.ErrRecordNotFound) {
 		c.logError(email, err, msgEmailAlreadyExists)
 		return c.handleError(ctx, fiber.StatusConflict, op, err, msgEmailAlreadyExists)
 	}
@@ -216,6 +217,9 @@ func (c *AuthController) Register(ctx *fiber.Ctx) error {
 	}
 
 	c.db.Preload("Role").Preload("Major").First(&user, user.Id)
+
+	user.RoleName = role.Name
+	user.MajorName = major.Name
 
 	return ctx.Status(fiber.StatusCreated).JSON(helpers.ApiResponse{
 		Message: "User Created Success",

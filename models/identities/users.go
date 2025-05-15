@@ -9,15 +9,17 @@ type Users struct {
 	Id        int       `json:"-" gorm:"primary_key"`
 	Username  string    `json:"username"`
 	Email     string    `json:"email" gorm:"unique"`
-	Password  string    `json:"password"`
+	Password  string    `json:"-"`
 	RoleID    uint8     `json:"-" gorm:"column:role_id"`
 	MajorID   uint8     `json:"-" gorm:"column:major_id"`
 	Batch     int       `json:"batch"`
 	Photo     string    `json:"photo"`
 	CreatedAt time.Time `json:"-,omitempty" gorm:"column:created_at"`
 	UpdatedAt time.Time `json:"-,omitempty" gorm:"column:updated_at"`
-	Role      Roles     `json:"role,omitempty" gorm:"foreignKey:RoleID"`
-	Major     Majors    `json:"major,omitempty" gorm:"foreignKey:MajorID"`
+	Role      Roles     `json:"-" gorm:"foreignKey:RoleID"`
+	RoleName  string    `json:"role" gorm:"-"`
+	Major     Majors    `json:"-" gorm:"foreignKey:MajorID"`
+	MajorName string    `json:"major" gorm:"-"`
 }
 type UsersResponse struct {
 	Id        int       `json:"id" gorm:"primary_key"`

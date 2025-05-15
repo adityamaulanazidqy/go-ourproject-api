@@ -14,12 +14,16 @@ type Masterpiece struct {
 	SemesterID int `json:"-" gorm:"column:semester_id"`
 
 	// relations
-	User     Users                      `json:"user,omitempty" gorm:"foreignKey:UserID"`
-	Status   statuses.MasterpieceStatus `json:"status,omitempty" gorm:"foreignKey:StatusID"`
-	Class    Classes                    `json:"class,omitempty" gorm:"foreignKey:ClassID"`
-	Semester Semesters                  `json:"semester,omitempty" gorm:"foreignKey:SemesterID"`
+	User         Users                      `json:"user,omitempty" gorm:"foreignKey:UserID"`
+	Class        Classes                    `json:"-" gorm:"foreignKey:ClassID"`
+	ClassName    string                     `json:"class,omitempty" gorm:"-"`
+	Status       statuses.MasterpieceStatus `json:"-" gorm:"foreignKey:StatusID"`
+	StatusName   string                     `json:"status,omitempty" gorm:"-"`
+	Semester     Semesters                  `json:"-" gorm:"foreignKey:SemesterID"`
+	SemesterName string                     `json:"semester,omitempty" gorm:"-"`
 
-	Files []FileMasterpiece `gorm:"foreignKey:MasterpieceID"`
+	Files      []FileMasterpiece `json:"-" gorm:"foreignKey:MasterpieceID"`
+	FilesNames []string          `json:"files" gorm:"-"`
 
 	PublicationDate time.Time `json:"publication_date" gorm:"column:publication_date"`
 	LinkGithub      string    `json:"link_github" gorm:"column:link_github"`

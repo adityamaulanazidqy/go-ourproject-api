@@ -128,6 +128,7 @@ func (r *MasterpieceRepository) CreateMasterpieceWithFiles(masterpiece *identity
 		First(&masterpieceEntity, masterpieceEntity.Id)
 
 	var userResponse = identity.UsersResponse{
+		Id:        masterpieceEntity.Id,
 		Username:  masterpieceEntity.User.Username,
 		Email:     masterpieceEntity.User.Email,
 		Batch:     masterpieceEntity.User.Batch,
@@ -152,4 +153,46 @@ func (r *MasterpieceRepository) CreateMasterpieceWithFiles(masterpiece *identity
 		Files:           files,
 		PublicationDate: masterpiece.PublicationDate.Format("2006-01-02"),
 	}, fiber.StatusCreated, op, "", nil
+}
+
+func (r *MasterpieceRepository) GetMasterpieces() ([]identity.Masterpiece, int, string, string, error) {
+	const op = "repository.Masterpieces.GetMasterpieces"
+
+	var masterpieces []identity.Masterpiece
+
+	err := r.db.
+		Preload("User.Role").
+		Preload("User.Major").
+		Preload("Status").
+		Preload("Class").
+		Preload("Semester").
+		Preload("Files").
+		Find(&masterpieces).Error
+
+	for i := range masterpieces {
+		var files []string
+		for _, file := range masterpieces[i].Files {
+			files = append(files, file.FilePath)
+		}
+		masterpieces[i].FilesNames = files
+		masterpieces[i].ClassName = masterpieces[i].Class.Class
+		masterpieces[i].StatusName = masterpieces[i].Status.Name
+
+		masterpieces[i].User.RoleName = masterpieces[i].User.Role.Name
+		masterpieces[i].User.MajorName = masterpieces[i].User.Major.Name
+	}
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, 0, op, "Masterpieces not found", err
+		}
+
+		return nil, 0, op, "", err
+	}
+
+	if len(masterpieces) == 0 {
+		return nil, 0, op, "Masterpieces not found", nil
+	}
+
+	return masterpieces, fiber.StatusOK, op, "Success Get data masterpieces", nil
 }

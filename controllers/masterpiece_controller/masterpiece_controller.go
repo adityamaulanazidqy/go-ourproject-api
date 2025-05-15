@@ -146,7 +146,7 @@ func (c *MasterpieceController) GetMasterpieces(ctx *fiber.Ctx) error {
 		return c.handleError(ctx, fiber.StatusInternalServerError, op, err, "Failed to get claims")
 	}
 
-	responseRepo, code, opResp, msg, err := c.masterRepo.GetMasterpiecesRepository()
+	responseRepo, code, opResp, msg, err := c.masterRepo.GetMasterpieces()
 	if err != nil {
 		c.logError(claims.Email, err, msg)
 		return c.handleError(ctx, code, opResp, err, msg)
@@ -154,7 +154,9 @@ func (c *MasterpieceController) GetMasterpieces(ctx *fiber.Ctx) error {
 
 	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": msg,
-		"data":    responseRepo,
+		"data": fiber.Map{
+			"masterpieces": responseRepo,
+		},
 	})
 }
 
