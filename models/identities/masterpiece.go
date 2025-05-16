@@ -7,7 +7,7 @@ import (
 )
 
 type Masterpiece struct {
-	Id         int `json:"-" gorm:"primary_key"`
+	Id         int `json:"id" gorm:"primary_key"`
 	UserID     int `json:"-" gorm:"column:user_id"`
 	StatusID   int `json:"-" gorm:"column:status_id"`
 	ClassID    int `json:"-" gorm:"column:class_id"`
@@ -24,6 +24,15 @@ type Masterpiece struct {
 
 	Files      []FileMasterpiece `json:"-" gorm:"foreignKey:MasterpieceID"`
 	FilesNames []string          `json:"files" gorm:"-"`
+
+	Like      Likes `json:"-" gorm:"foreignKey:MasterpieceID"`
+	LikeCount int   `json:"likes" gorm:"-"`
+
+	Dislike       Dislike `json:"-" gorm:"foreignKey:MasterpieceID"`
+	DislikesCount int     `json:"dislike" gorm:"-"`
+
+	Comments      []Comments `json:"comments" gorm:"foreignKey:MasterpieceID"`
+	CommentsArray []string   `json:"-" gorm:"-"`
 
 	PublicationDate time.Time `json:"publication_date" gorm:"column:publication_date"`
 	LinkGithub      string    `json:"link_github" gorm:"column:link_github"`
