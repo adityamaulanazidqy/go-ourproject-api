@@ -3,6 +3,7 @@ package masterpiece_controller
 import (
 	"errors"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/websocket/v2"
 	"github.com/redis/go-redis/v9"
 	"github.com/sirupsen/logrus"
 	"go-ourproject/helpers"
@@ -146,7 +147,7 @@ func (c *MasterpieceController) GetMasterpieces(ctx *fiber.Ctx) error {
 		return c.handleError(ctx, fiber.StatusInternalServerError, op, err, "Failed to get claims")
 	}
 
-	responseRepo, code, opResp, msg, err := c.masterRepo.GetMasterpieces()
+	responseRepo, code, opResp, msg, err := c.masterRepo.GetMasterpiecesRepository()
 	if err != nil {
 		c.logError(claims.Email, err, msg)
 		return c.handleError(ctx, code, opResp, err, msg)
@@ -158,6 +159,80 @@ func (c *MasterpieceController) GetMasterpieces(ctx *fiber.Ctx) error {
 			"masterpieces": responseRepo,
 		},
 	})
+}
+
+func (c *MasterpieceController) GetMasterpieceById(ctx *fiber.Ctx) error {
+	const op = "controller.Masterpieces.GetMasterpieceById"
+
+	claims, ok := ctx.Locals("user").(*jwt_models.JWTClaims)
+	if !ok || claims == nil {
+		err := errors.New("missing claims")
+		c.logLogrus.WithFields(logrus.Fields{
+			"err":     err,
+			"message": "missing claims",
+		}).Error("Failed to get claims")
+
+		return c.handleError(ctx, fiber.StatusInternalServerError, op, err, "Failed to get claims")
+	}
+
+	masterpieceID := ctx.Params("id")
+	if masterpieceID == "" {
+		err := errors.New("invalid id")
+		c.logError(claims.Email, err, "Invalid id parameter")
+		return c.handleError(ctx, fiber.StatusBadRequest, op, err, "Invalid masterpiece id parameter")
+	}
+
+	responseRepo, code, opRepo, msg, err := c.masterRepo.GetMasterpieceById(masterpieceID)
+	if err != nil {
+		c.logError(claims.Email, err, msg)
+		return c.handleError(ctx, code, opRepo, err, msg)
+	}
+	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": msg,
+		"data": fiber.Map{
+			"masterpiece": responseRepo,
+		},
+	})
+}
+
+func (c *MasterpieceController) GetMasterpiecesByStatusId(ctx *fiber.Ctx) error {
+	const op = "controller.Masterpieces.GetMasterpiecesByStatusId"
+
+	claims, ok := ctx.Locals("user").(*jwt_models.JWTClaims)
+	if !ok || claims == nil {
+		err := errors.New("missing claims")
+		c.logLogrus.WithFields(logrus.Fields{
+			"err":     err,
+			"message": "missing claims",
+		}).Error("Failed to get claims")
+
+		return c.handleError(ctx, fiber.StatusInternalServerError, op, err, "Failed to get claims")
+	}
+
+	statusID := ctx.Params("status_id")
+	if statusID == "" {
+		err := errors.New("invalid masterpieces statusId")
+		c.logError(claims.Email, err, "Invalid masterpieces statusId")
+		return c.handleError(ctx, fiber.StatusBadRequest, op, err, "Invalid masterpieces statusId")
+	}
+
+	responseRepo, code, opRepo, msg, err := c.masterRepo.GetMasterpiecesByStatusId(statusID)
+	if err != nil {
+		c.logError(claims.Email, err, msg)
+		return c.handleError(ctx, code, opRepo, err, msg)
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": msg,
+		"data": fiber.Map{
+			"masterpieces": responseRepo,
+		},
+	})
+}
+
+func (c *MasterpieceController) SearchMasterpiecesSocket(conn *websocket.Conn) error {
+	c.masterRepo.SearchMasterpiecesSocket(conn)
+	return nil
 }
 
 func (c *MasterpieceController) logError(email string, err error, message string) {

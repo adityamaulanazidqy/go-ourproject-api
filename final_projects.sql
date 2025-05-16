@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Waktu pembuatan: 10 Bulan Mei 2025 pada 18.55
+-- Waktu pembuatan: 15 Bulan Mei 2025 pada 08.31
 -- Versi server: 8.0.30
 -- Versi PHP: 8.3.14
 
@@ -41,14 +41,42 @@ CREATE TABLE `activity_logs` (
 -- --------------------------------------------------------
 
 --
+-- Struktur dari tabel `classes`
+--
+
+CREATE TABLE `classes` (
+  `id` int NOT NULL,
+  `class` int NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data untuk tabel `classes`
+--
+
+INSERT INTO `classes` (`id`, `class`) VALUES
+(1, 10),
+(2, 11),
+(3, 12);
+
+-- --------------------------------------------------------
+
+--
 -- Struktur dari tabel `files_masterpiece`
 --
 
 CREATE TABLE `files_masterpiece` (
   `id` bigint UNSIGNED NOT NULL,
   `masterpiece_id` bigint UNSIGNED NOT NULL,
-  `file_patch` varchar(255) DEFAULT NULL
+  `file_path` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data untuk tabel `files_masterpiece`
+--
+
+INSERT INTO `files_masterpiece` (`id`, `masterpiece_id`, `file_path`) VALUES
+(1, 1, 'Cuplikan layar 2025-04-25 090629.png'),
+(2, 1, 'Cuplikan layar 2025-04-25 090808.png');
 
 -- --------------------------------------------------------
 
@@ -84,19 +112,28 @@ INSERT INTO `majors` (`id`, `name`) VALUES
 -- --------------------------------------------------------
 
 --
--- Struktur dari tabel `masterpiece`
+-- Struktur dari tabel `masterpieces`
 --
 
-CREATE TABLE `masterpiece` (
+CREATE TABLE `masterpieces` (
   `id` bigint UNSIGNED NOT NULL,
   `user_id` bigint UNSIGNED NOT NULL,
   `status_id` tinyint UNSIGNED NOT NULL,
+  `class_id` int NOT NULL,
+  `semester_id` int NOT NULL,
   `publication_date` timestamp NULL DEFAULT NULL,
   `link_github` varchar(255) DEFAULT NULL,
   `viewer_count` int UNSIGNED DEFAULT '0',
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Used to store masterpiece files';
+
+--
+-- Dumping data untuk tabel `masterpieces`
+--
+
+INSERT INTO `masterpieces` (`id`, `user_id`, `status_id`, `class_id`, `semester_id`, `publication_date`, `link_github`, `viewer_count`, `created_at`, `updated_at`) VALUES
+(1, 5, 1, 1, 2, '2025-05-15 08:30:21', 'http:github.example.com', 0, '2025-05-15 08:30:21', '2025-05-15 08:30:21');
 
 -- --------------------------------------------------------
 
@@ -108,6 +145,14 @@ CREATE TABLE `masterpiece_statuses` (
   `id` tinyint UNSIGNED NOT NULL,
   `name` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data untuk tabel `masterpiece_statuses`
+--
+
+INSERT INTO `masterpiece_statuses` (`id`, `name`) VALUES
+(2, 'Pengembangan'),
+(1, 'Selesai');
 
 -- --------------------------------------------------------
 
@@ -155,7 +200,28 @@ CREATE TABLE `roles` (
 INSERT INTO `roles` (`id`, `name`) VALUES
 (2, 'Guru'),
 (3, 'Pembimbing'),
-(1, 'Siswa');
+(1, 'Siswa'),
+(5, 'Super Admin'),
+(6, 'Testing');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `semesters`
+--
+
+CREATE TABLE `semesters` (
+  `id` int NOT NULL,
+  `name` varchar(50) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data untuk tabel `semesters`
+--
+
+INSERT INTO `semesters` (`id`, `name`) VALUES
+(1, 'Ganjil'),
+(2, 'Genap');
 
 -- --------------------------------------------------------
 
@@ -272,7 +338,14 @@ INSERT INTO `users` (`id`, `username`, `email`, `password`, `role_id`, `major_id
 (2, 'Dliani albana', 'dliani@siswa.smktiannajiyah.sch.id', '$2a$10$9D1kbnxxFWly7VXzm6kIr.yaqNWl15Tx3r0G4E5l0H2FbjdGZubCW', 1, 1, '2022', 'dliani.jpg', '2025-05-10 10:22:51', '2025-05-10 10:22:51'),
 (3, 'Gabrielle Echols', 'gabrielle@siswa.smktiannajiyah.sch.id', '$2a$10$HuJN8MazsyFFR56RZBZax.m5niEI8Yt76GcFt6mKnkQgpAvNgB4hW', 1, 1, '2021', 'gabrielle.jpg', '2025-05-10 10:25:30', '2025-05-10 10:25:30'),
 (4, 'Sri Handayani', 'handayani@siswa.smktiannajiyah.sch.id', '$2a$10$k6X5C0I/MDMQBVkD0aBMWesDtEstKs7wNtBQ3enGYaqxQAlwyH2Yi', 1, 1, '2025', 'handayani.jpg', '2025-05-10 10:27:06', '2025-05-10 10:27:06'),
-(5, 'Zidny Isyah', 'zidny@siswa.smktiannajiyah.sch.id', '$2a$10$UmbuYtsV7xN7aOmOt8zZMecHGgw.N/kkv2c2dM54QUIuWqR.SAraW', 2, 1, '2020', 'zidny.jpg', '2025-05-10 18:00:01', '2025-05-10 18:00:01');
+(5, 'Zidny Isyah', 'zidny@siswa.smktiannajiyah.sch.id', '$2a$10$UmbuYtsV7xN7aOmOt8zZMecHGgw.N/kkv2c2dM54QUIuWqR.SAraW', 2, 1, '2020', 'zidny.jpg', '2025-05-10 18:00:01', '2025-05-10 18:00:01'),
+(15, 'Anjasmara', 'anjasmara@siswa.smktiannajiyah.sch.id', '$2a$10$KpPJxzWFTQKcYBt9IVadF.1ed2/1mlMSI6o1sDyWRNjZ/go4hbEpe', 2, 2, '2020', '1746994325107028800_420310333_2657596564425156_7930308480479293830_n.jpg', '2025-05-11 20:12:05', '2025-05-11 20:12:05'),
+(16, 'Krisdayanti', 'krisdayanti@siswa.smktiannajiyah.sch.id', '$2a$10$JsXoTCHG85zNKnv3VWsbEeqT/pKOaNqY0gI.DF3BhUMmkeI1QU9BC', 1, 2, '2019', '1746994505810256400_NakNyamplungCoffe.jpg', '2025-05-11 20:15:06', '2025-05-11 20:15:06'),
+(17, 'Lidyawati', 'lidyawati@siswa.smktiannajiyah.sch.id', '$2a$10$JJriZIrkAVAzHrcuT1ZSUec/DhoutdNhm/2OWJOkRvCjnTcHADr1a', 2, 1, '2022', '1746995496558197200_WIN_20240620_19_49_34_Pro.jpg', '2025-05-11 20:31:37', '2025-05-11 20:31:37'),
+(18, 'Cindy', 'cindy@siswa.smktiannajiyah.sch.id', '$2a$10$zW.0tKhdUhjC1YbKvKfxI.FDPUGUi28obdOIji6KwdRlW47eAPAHe', 3, 2, '2024', '1747294952179553400_Screenshot (11).png', '2025-05-15 07:42:32', '2025-05-15 07:42:32'),
+(19, 'Laraswati', 'laraswati@siswa.smktiannajiyah.sch.id', '$2a$10$ES3n26ltPpzqeH06oUNn7O5u80RUHA5SW0EMmEIrGHF1zNab9wc1W', 3, 2, '2024', '1747295225119752000_Screenshot (11).png', '2025-05-15 07:47:05', '2025-05-15 07:47:05'),
+(20, 'Albar Wicaksono', 'albar@siswa.smktiannajiyah.sch.id', '$2a$10$EzHd6hLFhkWhnSxvuyzouOOlZxMahIO5L7JI15VPSzfVD.Ef6j.76', 1, 1, '2020', '1747295645977712100_Screenshot (11).png', '2025-05-15 07:54:06', '2025-05-15 07:54:06'),
+(21, 'Suci handayani', 'suci@siswa.smktiannajiyah.sch.id', '$2a$10$rLjaz4i0yZrTjsJmuFkGruYl2cRWMDoRgg4sSSMW5lYA4zc6iHH6u', 1, 1, '2020', '1747296119493900700_Screenshot (11).png', '2025-05-15 08:01:59', '2025-05-15 08:01:59');
 
 --
 -- Indexes for dumped tables
@@ -286,11 +359,18 @@ ALTER TABLE `activity_logs`
   ADD KEY `user_id` (`user_id`);
 
 --
+-- Indeks untuk tabel `classes`
+--
+ALTER TABLE `classes`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `class` (`class`);
+
+--
 -- Indeks untuk tabel `files_masterpiece`
 --
 ALTER TABLE `files_masterpiece`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `masterpiece_id` (`masterpiece_id`);
+  ADD KEY `masterpiece_id_ibfk_1` (`masterpiece_id`);
 
 --
 -- Indeks untuk tabel `files_thesis`
@@ -307,12 +387,14 @@ ALTER TABLE `majors`
   ADD UNIQUE KEY `name` (`name`);
 
 --
--- Indeks untuk tabel `masterpiece`
+-- Indeks untuk tabel `masterpieces`
 --
-ALTER TABLE `masterpiece`
+ALTER TABLE `masterpieces`
   ADD PRIMARY KEY (`id`),
   ADD KEY `user_id` (`user_id`),
-  ADD KEY `status_id` (`status_id`);
+  ADD KEY `status_id` (`status_id`),
+  ADD KEY `masterpieces_ibfk_3` (`class_id`),
+  ADD KEY `masterpieces_ibfk_4` (`semester_id`);
 
 --
 -- Indeks untuk tabel `masterpiece_statuses`
@@ -340,6 +422,13 @@ ALTER TABLE `publication_statuses`
 -- Indeks untuk tabel `roles`
 --
 ALTER TABLE `roles`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `name` (`name`);
+
+--
+-- Indeks untuk tabel `semesters`
+--
+ALTER TABLE `semesters`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `name` (`name`);
 
@@ -409,10 +498,16 @@ ALTER TABLE `activity_logs`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT untuk tabel `classes`
+--
+ALTER TABLE `classes`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
 -- AUTO_INCREMENT untuk tabel `files_masterpiece`
 --
 ALTER TABLE `files_masterpiece`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT untuk tabel `files_thesis`
@@ -427,16 +522,16 @@ ALTER TABLE `majors`
   MODIFY `id` tinyint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
--- AUTO_INCREMENT untuk tabel `masterpiece`
+-- AUTO_INCREMENT untuk tabel `masterpieces`
 --
-ALTER TABLE `masterpiece`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
+ALTER TABLE `masterpieces`
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT untuk tabel `masterpiece_statuses`
 --
 ALTER TABLE `masterpiece_statuses`
-  MODIFY `id` tinyint UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` tinyint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT untuk tabel `publications`
@@ -454,7 +549,13 @@ ALTER TABLE `publication_statuses`
 -- AUTO_INCREMENT untuk tabel `roles`
 --
 ALTER TABLE `roles`
-  MODIFY `id` tinyint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` tinyint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT untuk tabel `semesters`
+--
+ALTER TABLE `semesters`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT untuk tabel `supervision_sessions`
@@ -496,7 +597,7 @@ ALTER TABLE `thesis_titles`
 -- AUTO_INCREMENT untuk tabel `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- Ketidakleluasaan untuk tabel pelimpahan (Dumped Tables)
@@ -512,7 +613,7 @@ ALTER TABLE `activity_logs`
 -- Ketidakleluasaan untuk tabel `files_masterpiece`
 --
 ALTER TABLE `files_masterpiece`
-  ADD CONSTRAINT `files_masterpiece_ibfk_1` FOREIGN KEY (`masterpiece_id`) REFERENCES `masterpiece` (`id`);
+  ADD CONSTRAINT `masterpiece_id_ibfk_1` FOREIGN KEY (`masterpiece_id`) REFERENCES `masterpieces` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
 
 --
 -- Ketidakleluasaan untuk tabel `files_thesis`
@@ -521,11 +622,13 @@ ALTER TABLE `files_thesis`
   ADD CONSTRAINT `files_thesis_ibfk_1` FOREIGN KEY (`publication_id`) REFERENCES `publications` (`id`);
 
 --
--- Ketidakleluasaan untuk tabel `masterpiece`
+-- Ketidakleluasaan untuk tabel `masterpieces`
 --
-ALTER TABLE `masterpiece`
-  ADD CONSTRAINT `masterpiece_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
-  ADD CONSTRAINT `masterpiece_ibfk_2` FOREIGN KEY (`status_id`) REFERENCES `masterpiece_statuses` (`id`);
+ALTER TABLE `masterpieces`
+  ADD CONSTRAINT `masterpieces_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
+  ADD CONSTRAINT `masterpieces_ibfk_2` FOREIGN KEY (`status_id`) REFERENCES `masterpiece_statuses` (`id`),
+  ADD CONSTRAINT `masterpieces_ibfk_3` FOREIGN KEY (`class_id`) REFERENCES `classes` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  ADD CONSTRAINT `masterpieces_ibfk_4` FOREIGN KEY (`semester_id`) REFERENCES `semesters` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
 
 --
 -- Ketidakleluasaan untuk tabel `publications`
