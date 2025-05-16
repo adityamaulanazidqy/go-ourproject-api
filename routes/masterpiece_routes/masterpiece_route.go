@@ -24,12 +24,14 @@ func MasterpieceRoute(app *fiber.App, db *gorm.DB, logLogrus *logrus.Logger, rdb
 
 	masterpieceGroup.Get("/status/:status_id", middlewares.JWTMiddleware("Siswa", "Guru", "Pembimbing"), controller.GetMasterpiecesByStatusId)
 
-	masterpieceGroup.Get("/ws/search-masterpieces", websocket.New(func(conn *websocket.Conn) {
+	masterpieceGroup.Get("/ws/search-masterpieces", middlewares.JWTMiddleware("Siswa", "Guru", "Pembimbing"), websocket.New(func(conn *websocket.Conn) {
 		err := controller.SearchMasterpiecesSocket(conn)
 		if err != nil {
 			return
 		}
 	}))
+
+	masterpieceGroup.Post("/comment", middlewares.JWTMiddleware("Siswa", "Guru", "Pembimbing"), controller.CreateComment)
 
 	masterpieceGroup.All("/*", func(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusMethodNotAllowed).JSON(helpers.ApiResponse{

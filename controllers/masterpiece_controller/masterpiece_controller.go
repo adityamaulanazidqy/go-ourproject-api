@@ -235,6 +235,43 @@ func (c *MasterpieceController) SearchMasterpiecesSocket(conn *websocket.Conn) e
 	return nil
 }
 
+func (c *MasterpieceController) CreateComment(ctx *fiber.Ctx) error {
+	const op = "controller.Masterpieces.CreateComment"
+
+	claims, ok := ctx.Locals("user").(*jwt_models.JWTClaims)
+	if !ok || claims == nil {
+		err := errors.New("missing claims")
+		c.logLogrus.WithFields(logrus.Fields{
+			"err":     err,
+			"message": "missing claims",
+		}).Error("Failed to get claims")
+
+		return c.handleError(ctx, fiber.StatusInternalServerError, op, err, "Failed to get claims")
+	}
+
+	var comment identity.Comments
+
+	if err := ctx.BodyParser(&comment); err != nil {
+		c.logError(claims.Email, err, "Failed to parse body")
+		return c.handleError(ctx, fiber.StatusBadRequest, op, err, "Failed to parse body")
+	}
+
+	comment.UserId = claims.UserID
+
+	responseRepo, code, opRepo, msg, err := c.masterRepo.CreateCommentRepository(comment)
+	if err != nil {
+		c.logError(claims.Email, err, msg)
+		return c.handleError(ctx, code, opRepo, err, msg)
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": msg,
+		"data": fiber.Map{
+			"masterpieces": responseRepo,
+		},
+	})
+}
+
 func (c *MasterpieceController) logError(email string, err error, message string) {
 	fields := logrus.Fields{"email": email, "message": message}
 	if err != nil {

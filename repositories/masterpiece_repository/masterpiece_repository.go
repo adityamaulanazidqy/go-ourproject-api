@@ -204,19 +204,40 @@ func (r *MasterpieceRepository) getMasterpiecesDBMysql() ([]identity.Masterpiece
 		Preload("Class").
 		Preload("Semester").
 		Preload("Files").
+		Preload("Like").
+		Preload("Dislike").
+		Preload("Comments.User.Role").
+		Preload("Comments.User.Major").
+		Preload("Comments.Masterpiece").
 		Find(&masterpieces).Error
 
 	for i := range masterpieces {
+		for j := range masterpieces[i].Comments {
+			masterpieces[i].Comments[j].User.RoleName = masterpieces[i].Comments[j].User.Role.Name
+			masterpieces[i].Comments[j].User.MajorName = masterpieces[i].Comments[j].User.Major.Name
+		}
+
 		var files []string
 		for _, file := range masterpieces[i].Files {
 			files = append(files, file.FilePath)
 		}
+
+		var comments []string
+		for _, comment := range masterpieces[i].Comments {
+			comments = append(comments, comment.Message)
+		}
+
 		masterpieces[i].FilesNames = files
 		masterpieces[i].ClassName = masterpieces[i].Class.Class
 		masterpieces[i].StatusName = masterpieces[i].Status.Name
 
 		masterpieces[i].User.RoleName = masterpieces[i].User.Role.Name
 		masterpieces[i].User.MajorName = masterpieces[i].User.Major.Name
+
+		masterpieces[i].LikeCount = masterpieces[i].Like.Count
+		masterpieces[i].DislikesCount = masterpieces[i].Dislike.Count
+
+		masterpieces[i].CommentsArray = comments
 	}
 
 	if err != nil {
@@ -267,6 +288,11 @@ func (r *MasterpieceRepository) GetMasterpieceById(masterpieceID string) (identi
 		Preload("Class").
 		Preload("Semester").
 		Preload("Files").
+		Preload("Like").
+		Preload("Dislike").
+		Preload("Comments.User.Role").
+		Preload("Comments.User.Major").
+		Preload("Comments.Masterpiece").
 		Find(&masterpiece).Error
 
 	if err != nil {
@@ -283,11 +309,38 @@ func (r *MasterpieceRepository) GetMasterpieceById(masterpieceID string) (identi
 		masterpiece.FilesNames = files
 	}
 
+	for j := range masterpiece.Comments {
+		masterpiece.Comments[j].User.RoleName = masterpiece.Comments[j].User.Role.Name
+		masterpiece.Comments[j].User.MajorName = masterpiece.Comments[j].User.Major.Name
+	}
+
+	for c := range masterpiece.Comments {
+		var comments []string
+		comments = append(comments, masterpiece.Comments[c].Message)
+		masterpiece.CommentsArray = comments
+	}
+
 	masterpiece.ClassName = masterpiece.Class.Class
 	masterpiece.StatusName = masterpiece.Status.Name
 
 	masterpiece.User.RoleName = masterpiece.User.Role.Name
 	masterpiece.User.MajorName = masterpiece.User.Major.Name
+
+	masterpiece.LikeCount = masterpiece.Like.Count
+	masterpiece.DislikesCount = masterpiece.Dislike.Count
+
+	var masterpiecesEmpety identity.Masterpiece
+	err = r.db.Model(&masterpiecesEmpety).Where("id = ?", masterpieceID).UpdateColumn("viewer_count", gorm.Expr("viewer_count + ?", 1)).Error
+	if err != nil {
+		return masterpiece, fiber.StatusInternalServerError, op, "Failed to update viewer_count", err
+	}
+
+	var viewerCount int
+	if err = r.db.Table("masterpieces").Where("id = ?", masterpieceID).Select("viewer_count").Scan(&viewerCount).Error; err != nil {
+		return masterpiece, fiber.StatusInternalServerError, op, "Failed to get viewer_count", err
+	}
+
+	masterpiece.ViewerCount = viewerCount
 
 	return masterpiece, fiber.StatusOK, op, "Success Get data masterpieces", nil
 }
@@ -325,19 +378,40 @@ func (r *MasterpieceRepository) getMasterpiecesByStatusIdDBMysql(statusID string
 		Preload("Class").
 		Preload("Semester").
 		Preload("Files").Where("status_id = ?", statusID).
+		Preload("Like").
+		Preload("Dislike").
+		Preload("Comments.User.Role").
+		Preload("Comments.User.Major").
+		Preload("Comments.Masterpiece").
 		Find(&masterpieces).Error
 
 	for i := range masterpieces {
+		for j := range masterpieces[i].Comments {
+			masterpieces[i].Comments[j].User.RoleName = masterpieces[i].Comments[j].User.Role.Name
+			masterpieces[i].Comments[j].User.MajorName = masterpieces[i].Comments[j].User.Major.Name
+		}
+
 		var files []string
 		for _, file := range masterpieces[i].Files {
 			files = append(files, file.FilePath)
 		}
+
+		var comments []string
+		for _, comment := range masterpieces[i].Comments {
+			comments = append(comments, comment.Message)
+		}
+
 		masterpieces[i].FilesNames = files
 		masterpieces[i].ClassName = masterpieces[i].Class.Class
 		masterpieces[i].StatusName = masterpieces[i].Status.Name
 
 		masterpieces[i].User.RoleName = masterpieces[i].User.Role.Name
 		masterpieces[i].User.MajorName = masterpieces[i].User.Major.Name
+
+		masterpieces[i].LikeCount = masterpieces[i].Like.Count
+		masterpieces[i].DislikesCount = masterpieces[i].Dislike.Count
+
+		masterpieces[i].CommentsArray = comments
 	}
 
 	if err != nil {
@@ -508,4 +582,83 @@ func (r *MasterpieceRepository) loadInitialData() []identity.Masterpiece {
 		return []identity.Masterpiece{}
 	}
 	return masterpieces
+}
+
+func (r *MasterpieceRepository) CreateCommentRepository(comments identity.Comments) (identity.Masterpiece, int, string, string, error) {
+	const op = "repository.CreateCommentRepository"
+
+	var user identity.Users
+	if err := r.db.Where("id = ?", comments.UserId).First(&user).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return identity.Masterpiece{}, fiber.StatusNotFound, op, "User not found", err
+		}
+
+		return identity.Masterpiece{}, fiber.StatusInternalServerError, op, "Internal server error", err
+	}
+
+	var masterpiece identity.Masterpiece
+	if err := r.db.Where("id = ?", comments.MasterpieceID).First(&masterpiece).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return masterpiece, fiber.StatusNotFound, op, "Masterpiece not found", err
+		}
+
+		return masterpiece, fiber.StatusInternalServerError, op, "Internal server error", err
+	}
+
+	if err := r.db.Create(&comments).Error; err != nil {
+		return masterpiece, fiber.StatusInternalServerError, op, "Failed to create comment", err
+	}
+
+	err := r.db.
+		Preload("User.Role").
+		Preload("User.Major").
+		Preload("Status").
+		Preload("Class").
+		Preload("Semester").
+		Preload("Files").
+		Preload("Like").
+		Preload("Dislike").
+		Preload("Comments.User.Role").
+		Preload("Comments.User.Major").
+		Preload("Comments.Masterpiece").
+		First(&masterpiece).Error
+
+	if err != nil {
+		return masterpiece, fiber.StatusInternalServerError, op, "Failed to create comment", err
+	}
+
+	for i := range masterpiece.Files {
+		var files []string
+		files = append(files, masterpiece.Files[i].FilePath)
+		masterpiece.FilesNames = files
+	}
+
+	for c := range masterpiece.Comments {
+		var comment []string
+		comment = append(comment, masterpiece.Comments[c].Message)
+		masterpiece.CommentsArray = comment
+	}
+
+	for j := range masterpiece.Comments {
+		masterpiece.Comments[j].User.RoleName = masterpiece.Comments[j].User.Role.Name
+		masterpiece.Comments[j].User.MajorName = masterpiece.Comments[j].User.Major.Name
+	}
+
+	masterpiece.ClassName = masterpiece.Class.Class
+	masterpiece.StatusName = masterpiece.Status.Name
+
+	masterpiece.User.RoleName = masterpiece.User.Role.Name
+	masterpiece.User.MajorName = masterpiece.User.Major.Name
+
+	masterpiece.LikeCount = masterpiece.Like.Count
+	masterpiece.DislikesCount = masterpiece.Dislike.Count
+
+	var viewerCount int
+	if err = r.db.Table("masterpieces").Where("id = ?", comments.MasterpieceID).Select("viewer_count").Scan(&viewerCount).Error; err != nil {
+		return masterpiece, fiber.StatusInternalServerError, op, "Failed to get viewer_count", err
+	}
+
+	masterpiece.ViewerCount = viewerCount
+
+	return masterpiece, fiber.StatusCreated, op, "Success create comment", nil
 }
