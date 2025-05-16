@@ -9,6 +9,7 @@
 
 # Ignore environment configuration file
 ../.env
+.env
 
 /assets/images/masterpiece
 /assets/images/profile
