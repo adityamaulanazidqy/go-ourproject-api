@@ -105,5 +105,36 @@ func (r *ThesisRepository) CreateSupervisionRepo(supervisionReq *identity.Superv
 		Supervision: supervision,
 		Status:      status.Name,
 	}
+
 	return supervisionResp, fiber.StatusCreated, op, "Success created supervision", nil
+}
+
+func (r *ThesisRepository) GetAllThesisRepo() ([]response_models.GetAllThesisResponse, int, string, string, error) {
+	const op = "repository.ThesisRepository.GetAllThesis"
+
+	var thesis []identity.Thesis
+	if err := r.db.
+		Preload("User.Role").
+		Preload("User.Major").
+		Preload("Status").
+		Where("status_id = ?", 3).
+		Find(&thesis).Error; err != nil {
+		return nil, fiber.StatusInternalServerError, op, "Failed to get thesis", err
+	}
+
+	var thesisResp []response_models.GetAllThesisResponse
+	for _, th := range thesis {
+		thesisResp = append(thesisResp, response_models.GetAllThesisResponse{
+			Thesis: th,
+			User:   th.User,
+			Status: th.Status.Name,
+		})
+	}
+
+	for i := range thesisResp {
+		thesisResp[i].User.RoleName = thesisResp[i].User.Role.Name
+		thesisResp[i].User.MajorName = thesisResp[i].User.Major.Name
+	}
+
+	return thesisResp, fiber.StatusOK, op, "Success get all thesis", nil
 }
