@@ -24,6 +24,10 @@ type ThesisRequest struct {
 	Description string `json:"description"`
 }
 
+type ThesisID struct {
+	ThesisID int `json:"thesis_id"`
+}
+
 func (Thesis) TableName() string {
 	return "thesis"
 }

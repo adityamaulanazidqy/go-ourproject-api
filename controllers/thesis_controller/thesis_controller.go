@@ -127,6 +127,39 @@ func (c *ThesisController) GetAllThesis(ctx *fiber.Ctx) error {
 	})
 }
 
+func (c *ThesisController) GetThesis(ctx *fiber.Ctx) error {
+	const op = "controllers.ThesisController.GetThesis"
+
+	claims, ok := ctx.Locals("user").(*jwt_models.JWTClaims)
+	if !ok || claims == nil {
+		err := errors.New("missing claims")
+		c.logLogrus.WithFields(logrus.Fields{
+			"err":     err,
+			"message": "missing claims",
+		}).Error("Failed to get claims")
+
+		return c.handleError(ctx, fiber.StatusInternalServerError, op, err, "Failed to get claims")
+	}
+
+	var thesisID identity.ThesisID
+	err := ctx.BodyParser(&thesisID)
+	if err != nil {
+		c.logError(claims.Email, err, "Failed to parse thesis")
+		return c.handleError(ctx, fiber.StatusBadRequest, op, err, "Failed to parse thesis")
+	}
+
+	responseRepo, code, opRepo, msg, err := c.thesisRepo.GetThesisRepo(&thesisID.ThesisID)
+	if err != nil {
+		c.logError(claims.Email, err, "Failed to get thesis")
+		return c.handleError(ctx, code, opRepo, err, msg)
+	}
+
+	return ctx.Status(code).JSON(fiber.Map{
+		"message": msg,
+		"data":    responseRepo,
+	})
+}
+
 func (c *ThesisController) logError(email string, err error, message string) {
 	fields := logrus.Fields{"email": email, "message": message}
 	if err != nil {

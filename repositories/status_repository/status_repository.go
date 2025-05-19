@@ -68,3 +68,48 @@ func (r *StatusRepository) statusMasterpieceDBMysql() (helpers.ApiResponse, int,
 		"masterpiece_status": masterpieceStatus,
 	}}, http.StatusOK, nil
 }
+
+func (r *StatusRepository) StatusThesisRepository() (helpers.ApiResponse, int, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Second)
+	defer cancel()
+
+	thesisStatusJson, err := r.rdb.Get(ctx, "thesis_status").Result()
+	if err != nil {
+		responseRepo, code, err := r.statusThesisDBMysql()
+		return responseRepo, code, err
+	}
+
+	var thesisStatus []statuses.MasterpieceStatus
+	err = json.Unmarshal([]byte(thesisStatusJson), &thesisStatus)
+	if err != nil {
+		return helpers.ApiResponse{Message: "Failed to convert json unmarshal thesis"}, http.StatusInternalServerError, err
+	}
+
+	return helpers.ApiResponse{Message: "Success Getting thesis status in redis", Data: fiber.Map{
+		"thesis_status": thesisStatus,
+	}}, http.StatusOK, nil
+}
+
+func (r *StatusRepository) statusThesisDBMysql() (helpers.ApiResponse, int, error) {
+	var thesisStatus []statuses.ThesisStatus
+	if err := r.db.Find(&thesisStatus).Error; err != nil {
+		return helpers.ApiResponse{Message: "Failed to get thesis Status"}, http.StatusInternalServerError, err
+	}
+
+	thesisStatusJson, err := json.Marshal(thesisStatus)
+	if err != nil {
+		return helpers.ApiResponse{Message: "Failed to convert marshal in thesis status"}, http.StatusInternalServerError, err
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Second)
+	defer cancel()
+
+	err = r.rdb.Set(ctx, "thesis_status", thesisStatusJson, 24*time.Hour).Err()
+	if err != nil {
+		return helpers.ApiResponse{Message: "Failed to save data thesis status in redis"}, http.StatusInternalServerError, err
+	}
+
+	return helpers.ApiResponse{Message: "Successfully get thesis status in database", Data: fiber.Map{
+		"thesis_status": thesisStatus,
+	}}, http.StatusOK, nil
+}

@@ -50,6 +50,29 @@ func (c *StatusController) StatusMasterpiece(ctx *fiber.Ctx) error {
 	return ctx.Status(code).JSON(responseRepo)
 }
 
+func (c *StatusController) StatusThesis(ctx *fiber.Ctx) error {
+	const op = "masterpiece.controller.StatusThesis"
+
+	claims, ok := ctx.Locals("user").(*jwt_models.JWTClaims)
+	if !ok || claims == nil {
+		err := errors.New("missing claims")
+		c.logLogrus.WithFields(logrus.Fields{
+			"err":     err,
+			"message": "missing claims",
+		}).Error("Failed to get claims")
+
+		return c.handleError(ctx, fiber.StatusInternalServerError, op, err, "Failed to get claims")
+	}
+
+	responseRepo, code, err := c.statusRepo.StatusThesisRepository()
+	if err != nil {
+		c.logError(claims.Email, err, "Failed to get status thesis")
+		return c.handleError(ctx, code, op, err, "Failed to get status thesis")
+	}
+
+	return ctx.Status(code).JSON(responseRepo)
+}
+
 func (c *StatusController) logError(email string, err error, message string) {
 	fields := logrus.Fields{"email": email, "message": message}
 	if err != nil {

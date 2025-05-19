@@ -13,7 +13,8 @@ func ThesisRoutes(app *fiber.App, db *gorm.DB, logLogrus *logrus.Logger, rdb *re
 	controller := thesis_controller.NewThesisController(db, logLogrus, rdb)
 
 	thesisGroup := app.Group("/thesis")
-	thesisGroup.Get("/all", middlewares.JWTMiddleware("Siswa", "Pembimbing", "Guru"), controller.GetAllThesis)
+	thesisGroup.Get("", middlewares.JWTMiddleware("Pembimbing", "Guru"), controller.GetThesis)
+	thesisGroup.Get("/all", middlewares.JWTMiddleware("Pembimbing", "Guru"), controller.GetAllThesis)
 	thesisGroup.Post("/create", middlewares.JWTMiddleware("Siswa"), controller.CreateThesisTitle)
 
 	supervisionGroup := app.Group("/supervision")
