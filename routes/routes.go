@@ -11,6 +11,7 @@ import (
 	"go-ourproject/routes/role_routes"
 	"go-ourproject/routes/semesters_routes"
 	"go-ourproject/routes/status_routes"
+	"go-ourproject/routes/thesis_routes"
 	"gorm.io/gorm"
 )
 
@@ -30,4 +31,6 @@ func Router(app *fiber.App, db *gorm.DB, logLogrus *logrus.Logger, rdb *redis.Cl
 	masterpiece_routes.MasterpieceRoute(app, db, logLogrus, rdb)
 
 	semesters_routes.SemesterRoutes(app, db, logLogrus, rdb)
+
+	thesis_routes.ThesisRoutes(app, db, logLogrus, rdb)
 }
