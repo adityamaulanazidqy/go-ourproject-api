@@ -19,6 +19,10 @@ func StatusRoutes(app *fiber.App, db *gorm.DB, logLogrus *logrus.Logger, rdb *re
 		return controller.StatusMasterpiece(ctx)
 	})
 
+	statusGroup.Get("/thesis", middlewares.JWTMiddleware("Guru", "Pembimbing"), func(ctx *fiber.Ctx) error {
+		return controller.StatusThesis(ctx)
+	})
+
 	statusGroup.All("/*", func(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusMethodNotAllowed).JSON(helpers.ApiResponse{
 			Message: "Method Not Allowed",

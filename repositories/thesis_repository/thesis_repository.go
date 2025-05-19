@@ -1,6 +1,7 @@
 package thesis_repository
 
 import (
+	"encoding/json"
 	"errors"
 	"github.com/gofiber/fiber/v2"
 	"github.com/redis/go-redis/v9"
@@ -8,7 +9,9 @@ import (
 	identity "go-ourproject/models/identities"
 	"go-ourproject/models/identities/statuses"
 	"go-ourproject/models/response_models"
+	"golang.org/x/net/context"
 	"gorm.io/gorm"
+	"time"
 )
 
 type ThesisRepository struct {
@@ -110,7 +113,27 @@ func (r *ThesisRepository) CreateSupervisionRepo(supervisionReq *identity.Superv
 }
 
 func (r *ThesisRepository) GetAllThesisRepo() ([]response_models.GetAllThesisResponse, int, string, string, error) {
-	const op = "repository.ThesisRepository.GetAllThesis"
+	const op = "repository.ThesisRepository.GetAllThesisRepo"
+
+	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Second)
+	defer cancel()
+
+	thesisJson, err := r.rdb.Get(ctx, "all_thesis").Result()
+	if err != nil {
+		responseRepo, code, opRepo, msg, err := r.getAllThesisDBMysql()
+		return responseRepo, code, opRepo, msg, err
+	}
+
+	var thesisResp []response_models.GetAllThesisResponse
+	if err := json.Unmarshal([]byte(thesisJson), &thesisResp); err != nil {
+		return nil, fiber.StatusInternalServerError, op, "Failed to convert data unmarshal", err
+	}
+
+	return thesisResp, fiber.StatusOK, op, "Success get all thesis in redis", nil
+}
+
+func (r *ThesisRepository) getAllThesisDBMysql() ([]response_models.GetAllThesisResponse, int, string, string, error) {
+	const op = "repository.ThesisRepository.GetAllThesisDBMysql"
 
 	var thesis []identity.Thesis
 	if err := r.db.
@@ -136,5 +159,42 @@ func (r *ThesisRepository) GetAllThesisRepo() ([]response_models.GetAllThesisRes
 		thesisResp[i].User.MajorName = thesisResp[i].User.Major.Name
 	}
 
+	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Second)
+	defer cancel()
+
+	thesisJson, err := json.Marshal(thesisResp)
+	if err != nil {
+		return nil, fiber.StatusInternalServerError, op, "Failed to convert thesis in data marshal", err
+	}
+
+	err = r.rdb.Set(ctx, "all_thesis", thesisJson, 10*time.Second).Err()
+	if err != nil {
+		return nil, fiber.StatusInternalServerError, op, "Failed to save data thesis in redis", err
+	}
+
 	return thesisResp, fiber.StatusOK, op, "Success get all thesis", nil
+}
+
+func (r *ThesisRepository) GetThesisRepo(thesisID *int) (response_models.GetAllThesisResponse, int, string, string, error) {
+	const op = "repository.ThesisRepository.GetThesis"
+
+	var thesis identity.Thesis
+	if err := r.db.
+		Preload("User.Role").
+		Preload("User.Major").
+		Preload("Status").
+		First(&thesis, *thesisID).Error; err != nil {
+		return response_models.GetAllThesisResponse{}, fiber.StatusInternalServerError, op, "Failed to get thesis", err
+	}
+
+	var thesisResponse = response_models.GetAllThesisResponse{
+		Thesis: thesis,
+		User:   thesis.User,
+		Status: thesis.Status.Name,
+	}
+
+	thesisResponse.User.RoleName = thesisResponse.User.Role.Name
+	thesisResponse.User.MajorName = thesisResponse.User.Major.Name
+
+	return thesisResponse, fiber.StatusOK, op, "Success get thesis", nil
 }
