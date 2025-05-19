@@ -10,3 +10,9 @@ type ThesisResponse struct {
 	Status     statuses.ThesisStatus `json:"-"`
 	StatusName string                `json:"status"`
 }
+
+type GetAllThesisResponse struct {
+	Thesis identity.Thesis `json:"thesis"`
+	User   identity.Users  `json:"user"`
+	Status string          `json:"status"`
+}
