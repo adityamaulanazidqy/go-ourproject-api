@@ -13,7 +13,7 @@ type Users struct {
 	RoleID    uint8     `json:"-" gorm:"column:role_id"`
 	MajorID   uint8     `json:"-" gorm:"column:major_id"`
 	Batch     int       `json:"batch"`
-	Photo     string    `json:"photo"`
+	Photo     string    `json:"photo" gorm:"default:'icon_default.jpg'"`
 	CreatedAt time.Time `json:"-,omitempty" gorm:"column:created_at"`
 	UpdatedAt time.Time `json:"-,omitempty" gorm:"column:updated_at"`
 	Role      Roles     `json:"-" gorm:"foreignKey:RoleID"`

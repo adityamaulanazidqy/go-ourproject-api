@@ -16,7 +16,12 @@ func main() {
 	rdb := config.ConnRedis(logLogrus)
 
 	c := fiber.New()
-	routes.Router(c, db, logLogrus, rdb)
+	routes.Router(
+		c,
+		db,
+		logLogrus,
+		rdb,
+	)
 
 	middlewares.SetRedisClientMiddleware(rdb)
 
